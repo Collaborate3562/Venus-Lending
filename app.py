@@ -11,6 +11,8 @@ g_Comptroller_Contract = None
 g_Venus_Cake_Contract = None
 g_Venus_Usdt_Contract = None
 
+MIN_SUPPLY_AMOUNT = 1.5
+
 BSC_RPC_URI = os.environ['BSC_RPC_URI']
 OWNER_ADDRESS = os.environ['OWNER_ADDRESS']
 OWNER_PRIVATE_KEY = os.environ['OWNER_PRIVATE_KEY']
@@ -39,7 +41,7 @@ def getContract() -> None:
 
     global g_Venus_Usdt_Contract
     g_Venus_Usdt_Contract = g_Web3.eth.contract(
-        address=VENUS_CAKE_ADDRESS, abi=abi)
+        address=VENUS_USDT_ADDRESS, abi=abi)
     
     abi = []
     with open("./abi/venus_cake_abi.json") as f:
@@ -47,7 +49,7 @@ def getContract() -> None:
 
     global g_Venus_Cake_Contract
     g_Venus_Cake_Contract = g_Web3.eth.contract(
-        address=VENUS_USDT_ADDRESS, abi=abi)
+        address=VENUS_CAKE_ADDRESS, abi=abi)
 
 def checkMarketAssets() -> None:
     vTokens = g_Comptroller_Contract.functions.getAssetsIn(OWNER_ADDRESS).call()
@@ -55,7 +57,42 @@ def checkMarketAssets() -> None:
         enterMarkets()
         
 def supplyTether() -> None:
-    None
+    nonce = g_Web3.eth.get_transaction_count(OWNER_ADDRESS)
+    
+    chain_id = g_Web3.eth.chain_id
+    call_function = g_Venus_Usdt_Contract.functions.mint(g_Web3.to_wei(MIN_SUPPLY_AMOUNT, 'ether')).build_transaction({
+        "chainId": chain_id,
+        "from": OWNER_ADDRESS,
+        "nonce": nonce,
+        "gas": 300000,
+        "gasPrice": g_Web3.to_wei('3', 'gwei')
+    })
+    
+    signed_tx = g_Web3.eth.account.sign_transaction(call_function, private_key=OWNER_PRIVATE_KEY)
+    send_tx = g_Web3.eth.send_raw_transaction(signed_tx.rawTransaction)
+    
+    g_Web3.eth.wait_for_transaction_receipt(send_tx)
+    print('Successfully supplied Tether.')
+    
+def borrowCake() -> None:
+    nonce = g_Web3.eth.get_transaction_count(OWNER_ADDRESS)
+    
+    formatted_amount = "{:.3f}".format(MIN_SUPPLY_AMOUNT * 0.8 / 1.12)
+    
+    chain_id = g_Web3.eth.chain_id
+    call_function = g_Venus_Cake_Contract.functions.borrow(g_Web3.to_wei(formatted_amount, 'ether')).build_transaction({
+        "chainId": chain_id,
+        "from": OWNER_ADDRESS,
+        "nonce": nonce,
+        "gas": 200000,
+        "gasPrice": g_Web3.to_wei('3', 'gwei')
+    })
+    
+    signed_tx = g_Web3.eth.account.sign_transaction(call_function, private_key=OWNER_PRIVATE_KEY)
+    send_tx = g_Web3.eth.send_raw_transaction(signed_tx.rawTransaction)
+    
+    g_Web3.eth.wait_for_transaction_receipt(send_tx)
+    print('Successfully borrowed Cake.')
 
 def enterMarkets() -> None:
     arr = []
@@ -69,8 +106,8 @@ def enterMarkets() -> None:
         "chainId": chain_id,
         "from": OWNER_ADDRESS,
         "nonce": nonce,
-        "gas": 500000,
-        "gasPrice": g_Web3.to_wei('10', 'gwei')
+        "gas": 200000,
+        "gasPrice": g_Web3.to_wei('3', 'gwei')
     })
     
     signed_tx = g_Web3.eth.account.sign_transaction(call_function, private_key=OWNER_PRIVATE_KEY)
@@ -82,5 +119,7 @@ def enterMarkets() -> None:
 def main() -> None:
     getContract()
     checkMarketAssets()
+    # supplyTether()
+    # borrowCake()
     
 main()
