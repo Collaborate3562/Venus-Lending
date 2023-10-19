@@ -168,7 +168,7 @@ def approveToken(token_contract: dict, spender: str, amount: str) -> None:
 
 def addLiquidity() -> None:
     # approveToken(g_Cake_Contract, POSITION_MANAGER_ADDRESS, '1')
-    # approveToken(g_Usdt_Contract, POSITION_MANAGER_ADDRESS, '1.215')
+    # approveToken(g_Usdt_Contract, POSITION_MANAGER_ADDRESS, '1.315')
     
     params = {
         "token0": CAKE_ADDRESS,
@@ -177,11 +177,11 @@ def addLiquidity() -> None:
         "tickLower": TICK_LOWER,
         "tickUpper": TICK_UPPER,
         "amount0Desired": g_Web3.to_wei('1', 'ether'),
-        "amount1Desired": g_Web3.to_wei('1.215', 'ether'),
-        'amount0Min': g_Web3.to_wei('0.946', 'ether'),
-        'amount1Min': g_Web3.to_wei('1.158', 'ether'),
+        "amount1Desired": g_Web3.to_wei('1.215131331772952315', 'ether'),
+        'amount0Min': g_Web3.to_wei('0.946526550544029458', 'ether'),
+        'amount1Min': g_Web3.to_wei('1.158089958525620999', 'ether'),
         'recipient': OWNER_ADDRESS,
-        'deadline': 1697740471
+        'deadline': 1697730471
     }
     
     nonce = g_Web3.eth.get_transaction_count(OWNER_ADDRESS)
