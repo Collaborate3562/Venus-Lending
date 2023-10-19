@@ -79,8 +79,8 @@ def getContract() -> None:
     g_Cake_Contract = g_Web3.eth.contract(
         address=CAKE_ADDRESS, abi=abi)
     
-    global g_Cake_Contract
-    g_Cake_Contract = g_Web3.eth.contract(
+    global g_Usdt_Contract
+    g_Usdt_Contract = g_Web3.eth.contract(
         address=USDT_ADDRESS, abi=abi)
 
 def checkMarketAssets() -> None:
@@ -167,27 +167,27 @@ def approveToken(token_contract: dict, spender: str, amount: str) -> None:
     print('Successfully approved token.')
 
 def addLiquidity() -> None:
-    approveToken(g_Cake_Contract, POSITION_MANAGER_ADDRESS, '1')
-    approveToken(g_Usdt_Contract, POSITION_MANAGER_ADDRESS, '1.215')
+    # approveToken(g_Cake_Contract, POSITION_MANAGER_ADDRESS, '1')
+    # approveToken(g_Usdt_Contract, POSITION_MANAGER_ADDRESS, '1.215')
     
-    params = {}
-    
-    params.token0 = CAKE_ADDRESS
-    params.token1 = USDT_ADDRESS
-    params.fee = PANCAKE_V3_FEE
-    params.tickLower = TICK_LOWER
-    params.tickUpper = TICK_UPPER
-    params.amount0Desired = g_Web3.to_wei('1', 'ether')
-    params.amount1Desired = g_Web3.to_wei('1.215', 'ether')
-    params.amount0Min = g_Web3.to_wei('0.946', 'ether')
-    params.amount1Min = g_Web3.to_wei('1.158', 'ether')
-    params.recipient = OWNER_ADDRESS
-    params.deadline = 1697740471
+    params = {
+        "token0": CAKE_ADDRESS,
+        "token1": USDT_ADDRESS,
+        "fee": PANCAKE_V3_FEE,
+        "tickLower": TICK_LOWER,
+        "tickUpper": TICK_UPPER,
+        "amount0Desired": g_Web3.to_wei('1', 'ether'),
+        "amount1Desired": g_Web3.to_wei('1.215', 'ether'),
+        'amount0Min': g_Web3.to_wei('0.946', 'ether'),
+        'amount1Min': g_Web3.to_wei('1.158', 'ether'),
+        'recipient': OWNER_ADDRESS,
+        'deadline': 1697740471
+    }
     
     nonce = g_Web3.eth.get_transaction_count(OWNER_ADDRESS)
     
     chain_id = g_Web3.eth.chain_id
-    call_function = POSITION_MANAGER_ADDRESS.functions.enterMarkets(params).build_transaction({
+    call_function = g_Position_Manager_Contract.functions.mint(params).build_transaction({
         "chainId": chain_id,
         "from": OWNER_ADDRESS,
         "nonce": nonce,
